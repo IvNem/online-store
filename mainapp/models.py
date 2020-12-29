@@ -7,6 +7,8 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
+from django.urls import reverse
+
 # Используем пользователя который указан в settings
 User = get_user_model()
 
@@ -20,7 +22,6 @@ class Category(models.Model):
 
 
 class Product(models.Model):
-
     category = models.ForeignKey(Category, verbose_name='Категория', on_delete=models.CASCADE)
     title = models.CharField(max_length=255, verbose_name='Наименование')
     manufacture = models.CharField(max_length=255, verbose_name='Производитель')
@@ -48,6 +49,9 @@ class Product(models.Model):
             filestream, 'ImageField', name, 'jpeg/image', sys.getsizeof(filestream), None
         )
         super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return reverse('product_detail', kwargs={'slug': self.slug})
 
 
 class CartProduct(models.Model):
@@ -83,6 +87,3 @@ class Customer(models.Model):
 
     def __str__(self):
         return "Покупатель: {}".format(self.user.first_name, self.user.last_name)
-
-
-

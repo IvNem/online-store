@@ -1,3 +1,8 @@
+import sys
+from io import BytesIO
+# Используем для того чтобы узнать длину и высоту загружаемого изображения
+from PIL import Image
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
@@ -26,6 +31,23 @@ class Product(models.Model):
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        image = self.image
+        # Открываем картинку через PIL
+        img = Image.open(image)
+        new_img = img.convert('RGB')
+        resized_new_img = new_img.resize((800, 800), Image.ANTIALIAS)
+        # преобразуем изображение в поток данных
+        filestream = BytesIO()
+        # сохраняем преобразованное изобр
+        resized_new_img.save(filestream, 'JPEG', quality=90)
+        filestream.seek(0)
+        name = '{}.{}'.format(*self.image.name.split('.'))
+        self.image = InMemoryUploadedFile(
+            filestream, 'ImageField', name, 'jpeg/image', sys.getsizeof(filestream), None
+        )
+        super().save(*args, **kwargs)
 
 
 class CartProduct(models.Model):

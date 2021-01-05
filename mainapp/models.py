@@ -13,6 +13,11 @@ from django.urls import reverse
 User = get_user_model()
 
 
+def get_product_url(obj, viewname):
+    ct_model = obj.__class__.meta.nodel_name
+    return reverse(viewname, kwargs={'ct_model': ct_model, 'slug': obj.slug})
+
+
 class Category(models.Model):
     name = models.CharField(max_length=255, verbose_name='Имя категории')
     slug = models.SlugField(unique=True)
@@ -50,9 +55,6 @@ class Product(models.Model):
         )
         super().save(*args, **kwargs)
 
-    def get_absolute_url(self):
-        return reverse('product_detail', kwargs={'slug': self.slug})
-
 
 class CartProduct(models.Model):
     user = models.ForeignKey('Customer', verbose_name='Покупатель', on_delete=models.CASCADE)
@@ -67,7 +69,7 @@ class CartProduct(models.Model):
     final_price = models.DecimalField(max_digits=9, decimal_places=2, verbose_name='Итого')
 
     def __str__(self):
-        return "Продукт: {}".format(self.product.title)
+        return "Продукт: {}".format(self.content_object.title)
 
 
 class Cart(models.Model):
@@ -87,3 +89,31 @@ class Customer(models.Model):
 
     def __str__(self):
         return "Покупатель: {}".format(self.user.first_name, self.user.last_name)
+
+
+class Resistor(Product):
+    res_type = models.CharField(max_length=50, verbose_name='Тип')
+    resistance = models.FloatField(max_length=20, verbose_name='Номинальное сопротивление')
+    unit = models.CharField(max_length=20, verbose_name='Единица измерения')
+    presicion = models.FloatField(max_length=3, verbose_name='Точность, %')
+    capacity = models.CharField(max_length=20, verbose_name='Номинальная мощность')
+
+    def __str__(self):
+        return "{} : {}".format(self.category.name, self.title)
+
+    def get_absolute_url(self):
+        return get_product_url(self, 'product_detail')
+
+
+class Transistor(Product):
+    trans_type = models.CharField(max_length=50, verbose_name='Тип транзистора')
+    trans_struct = models.CharField(max_length=50, verbose_name='Структура')
+    max_voltage = models.CharField(max_length=50, verbose_name='Максимальное напряжение к-э')
+    max_capacity = models.CharField(max_length=50, verbose_name='Максимальная рассеиваемая мощность')
+    trans_case = models.CharField(max_length=50, verbose_name='Корпус')
+
+    def __str__(self):
+        return "{} : {}".format(self.category.name, self.title)
+
+    def get_absolute_url(self):
+        return get_product_url(self, 'product_detail')

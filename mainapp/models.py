@@ -13,26 +13,50 @@ from django.urls import reverse
 User = get_user_model()
 
 
+def get_models_for_count(*model_names):
+    return [models.Count(model_name) for model_name in model_names]
+
+
 def get_product_url(obj, viewname):
     ct_model = obj.__class__.meta.nodel_name
     return reverse(viewname, kwargs={'ct_model': ct_model, 'slug': obj.slug})
 
 
+class CategoryManager(models.Manager):
+
+    CATEGORY_NAME_COUNT = {
+        'Транзисторы': 'transistor__count',
+        'Резисторы': 'resistor__count'
+    }
+
+    def get_queryset(self):
+        return super().get_queryset()
+
+    def get_categories_for_left_sidebar(self):
+        models = get_models_for_count('resistor', 'transistor')
+        qs = self.get_queryset().annotate(*models).values()
+        return [dict(name=c['name'], slug=c['slug'], count=c[self.CATEGORY_NAME_COUNT[c['name']]]) for c in qs]
+
+
 class Category(models.Model):
     name = models.CharField(max_length=255, verbose_name='Имя категории')
     slug = models.SlugField(unique=True)
+    objects = CategoryManager()
 
     def __str__(self):
         return self.name
 
 
 class Product(models.Model):
+    class Meta:
+        abstract = True
+
     category = models.ForeignKey(Category, verbose_name='Категория', on_delete=models.CASCADE)
     title = models.CharField(max_length=255, verbose_name='Наименование')
     manufacture = models.CharField(max_length=255, verbose_name='Производитель')
     slug = models.SlugField(unique=True)
     image = models.ImageField(verbose_name='Изображение')
-    description = models.TextField(verbose_name='Описание', null=True)
+    description = models.TextField(verbose_name='Описание', null=True, blank=True)
     price = models.DecimalField(max_digits=9, decimal_places=2, verbose_name='Цена')
 
     def __str__(self):
@@ -77,6 +101,8 @@ class Cart(models.Model):
     products = models.ManyToManyField(CartProduct, blank=True, related_name='related_cart')
     total_products = models.PositiveBigIntegerField(default=0)
     final_price = models.DecimalField(max_digits=9, decimal_places=2, verbose_name='Итого')
+    in_order = models.BooleanField(default=False)
+    for_anonimus_user = models.BooleanField(default=False)
 
     def __str__(self):
         return str(self.id)
@@ -117,3 +143,5 @@ class Transistor(Product):
 
     def get_absolute_url(self):
         return get_product_url(self, 'product_detail')
+
+

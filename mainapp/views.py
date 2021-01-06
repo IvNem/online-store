@@ -1,16 +1,17 @@
 from django.shortcuts import render
-from django.views.generic import DetailView
+from django.views.generic import DetailView, View
 
 from mainapp.models import Resistor, Transistor, Category
+from .mixins import CategoryDetailMixin
 
 
-def test_view(request):
-    categories = Category.objects.get_categories_for_left_sidebar()
+class BaseView(View):
+    def get(self, request, *args,**kwargs):
+        categories = Category.objects.get_categories_for_left_sidebar()
+        return render(request, 'base_generic.html', {'categories': categories})
 
-    return render(request, 'base_generic.html', {'categories': categories})
 
-
-class ProductDetailView(DetailView):
+class ProductDetailView(CategoryDetailMixin, DetailView):
     # Список моделей
     CT_MODEL_CLASS = {
         'resistor': Resistor,
@@ -28,7 +29,7 @@ class ProductDetailView(DetailView):
     slug_url_kwarg = 'slug'
 
 
-class CategoryDetailView(DetailView):
+class CategoryDetailView(CategoryDetailMixin, DetailView):
     model = Category
     queryset = Category.objects.all()
     context_object_name = 'category'

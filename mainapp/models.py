@@ -18,8 +18,26 @@ def get_models_for_count(*model_names):
 
 
 def get_product_url(obj, viewname):
-    ct_model = obj.__class__.meta.nodel_name
+    ct_model = obj.__class__._meta.model_name
     return reverse(viewname, kwargs={'ct_model': ct_model, 'slug': obj.slug})
+
+
+class LatestProductsManager:
+
+    @staticmethod
+    def get_products_for_main_page(*args):
+        products = []
+        ct_models = ContentType.objects.filter(model__in=args)
+        for ct_model in ct_models:
+            model_products = ct_model.model_class()._base_manager.all().order_by('-id')[:5]
+            products.extend(model_products)
+
+        return products
+
+
+class LatestProducts:
+
+    objects = LatestProductsManager()
 
 
 class CategoryManager(models.Manager):

@@ -1,14 +1,19 @@
 from django.shortcuts import render
 from django.views.generic import DetailView, View
 
-from mainapp.models import Resistor, Transistor, Category
+from mainapp.models import Resistor, Transistor, Category, LatestProducts
 from .mixins import CategoryDetailMixin
 
 
 class BaseView(View):
-    def get(self, request, *args,**kwargs):
+    def get(self, request, *args, **kwargs):
         categories = Category.objects.get_categories_for_left_sidebar()
-        return render(request, 'base_generic.html', {'categories': categories})
+        products = LatestProducts.objects.get_products_for_main_page('resistor', 'transistor')
+        context = {
+            'categories': categories,
+            'products': products
+        }
+        return render(request, 'base_generic.html', context)
 
 
 class ProductDetailView(CategoryDetailMixin, DetailView):

@@ -34,8 +34,12 @@ class CategoryManager(models.Manager):
 
     def get_categories_for_left_sidebar(self):
         models = get_models_for_count('resistor', 'transistor')
-        qs = self.get_queryset().annotate(*models).values()
-        return [dict(name=c['name'], slug=c['slug'], count=c[self.CATEGORY_NAME_COUNT[c['name']]]) for c in qs]
+        qs = self.get_queryset().annotate(*models)
+        data = [
+            dict(name=c.name, url=c.get_absolute_url(), count=getattr(c, self.CATEGORY_NAME_COUNT[c.name]))
+            for c in qs
+        ]
+        return data
 
 
 class Category(models.Model):
@@ -45,6 +49,9 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_absolute_url(self):
+        return reverse('category_detail', kwargs={'slug': self.slug})
 
 
 class Product(models.Model):

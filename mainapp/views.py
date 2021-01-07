@@ -65,6 +65,24 @@ class AddToCartView(CartMixin, View):
         # Проверка был ли создан продукт
         if created:
             self.cart.products.add(cart_product)
+        self.cart.save()
+        return HttpResponseRedirect('/cart/')
+
+
+class DeleteCartView(CartMixin, View):
+    def get(self, request, *args, **kwargs):
+        # Берем нужные значения модели
+        ct_model, product_slug = kwargs.get('ct_model'), kwargs.get('slug')
+        # Определяем модель нашего товара
+        content_type = ContentType.objects.get(model=ct_model)
+        # Вызываем родительскую модель и получаем его slug
+        product = content_type.model_class().objects.get(slug=product_slug)
+        # Создаем новый объект
+        cart_product = CartProduct.objects.get(
+            user=self.cart.owner, cart=self.cart, content_type=content_type, object_id=product.id
+        )
+        self.cart.products.remove(cart_product)
+        self.cart.save()
         return HttpResponseRedirect('/cart/')
 
 

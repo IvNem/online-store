@@ -82,6 +82,7 @@ class DeleteCartView(CartMixin, View):
             user=self.cart.owner, cart=self.cart, content_type=content_type, object_id=product.id
         )
         self.cart.products.remove(cart_product)
+        cart_product.delete()
         self.cart.save()
         return HttpResponseRedirect('/cart/')
 

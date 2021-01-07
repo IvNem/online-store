@@ -4,6 +4,7 @@ from django.views.generic import DetailView, View
 from django.http.response import HttpResponseRedirect
 from mainapp.models import Resistor, Transistor, Category, LatestProducts, Customer, Cart, CartProduct
 from .mixins import CategoryDetailMixin, CartMixin
+from django.contrib import messages
 
 
 class BaseView(CartMixin, View):
@@ -66,6 +67,7 @@ class AddToCartView(CartMixin, View):
         if created:
             self.cart.products.add(cart_product)
         self.cart.save()
+        messages.add_message(request, messages.INFO, 'Товар добавлен в корзину')
         return HttpResponseRedirect('/cart/')
 
 
@@ -84,6 +86,27 @@ class DeleteCartView(CartMixin, View):
         self.cart.products.remove(cart_product)
         cart_product.delete()
         self.cart.save()
+        messages.add_message(request, messages.INFO, 'Товар удален из корзины')
+        return HttpResponseRedirect('/cart/')
+
+
+class ChangeQTYView(CartMixin, View):
+    def post(self, request, *args, **kwargs):
+        # Берем нужные значения модели
+        ct_model, product_slug = kwargs.get('ct_model'), kwargs.get('slug')
+        # Определяем модель нашего товара
+        content_type = ContentType.objects.get(model=ct_model)
+        # Вызываем родительскую модель и получаем его slug
+        product = content_type.model_class().objects.get(slug=product_slug)
+        # Создаем новый объект
+        cart_product = CartProduct.objects.get(
+            user=self.cart.owner, cart=self.cart, content_type=content_type, object_id=product.id
+        )
+        qty = int(request.POST.get('qty'))
+        cart_product.qty = qty
+        cart_product.save()
+        self.cart.save()
+        messages.add_message(request, messages.INFO, 'Количество изменено')
         return HttpResponseRedirect('/cart/')
 
 

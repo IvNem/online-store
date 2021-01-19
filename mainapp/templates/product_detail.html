@@ -20,8 +20,7 @@
         <p>Цена: {{product.price}}</p>
         <a href="{% url 'add_to_cart' ct_model=ct_model slug=product.slug%}"><button class="btn btn-danger"> В корзину</button></a>
     </div>
-    <p class="mt-4">Характеристики:</p>
-    {{ product|product_spec}}
+
 </div>
 
 

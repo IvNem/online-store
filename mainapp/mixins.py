@@ -2,26 +2,8 @@
     которые могут быть использованы в различных классах,
     которые не приходят из базового класса. """
 from django.views import View
-from django.views.generic.detail import SingleObjectMixin
-from .models import Category, Customer, Cart, Transistor, Resistor
+from .models import Customer, Cart
 
-
-class CategoryDetailMixin(SingleObjectMixin):
-    CATEGORY_PRODUCT_MODEL = {
-        'transistors': Transistor,
-        'resistors': Resistor
-    }
-
-    def get_context_data(self, **kwargs):
-        if isinstance(self.get_object(), Category):
-            model = self.CATEGORY_PRODUCT_MODEL[self.get_object().slug]
-            context = super().get_context_data(**kwargs)
-            context['categories'] = Category.objects.get_categories_for_left_sidebar()
-            context['category_products'] = model.objects.all()
-            return context
-        context = super().get_context_data(**kwargs)
-        context['categories'] = Category.objects.get_categories_for_left_sidebar()
-        return context
 
 class CartMixin(View):
 

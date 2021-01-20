@@ -1,11 +1,11 @@
-from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth import authenticate, login
 from django.shortcuts import render
 from django.views.generic import DetailView, View
 from django.http.response import HttpResponseRedirect
 from mainapp.models import Category, Customer, Cart, CartProduct, Product
 from .mixins import CartMixin
 from django.contrib import messages
-from .forms import OrderForm
+from .forms import OrderForm, LoginForm
 from .utils import recount_cart
 from django.db import transaction
 
@@ -152,3 +152,25 @@ class MakeOrderView(CartMixin, View):
             return HttpResponseRedirect('/')
         return HttpResponseRedirect('/checkout/')
 
+
+class LoginView(CartMixin, View):
+    def get(self, request, *args, **kwargs):
+        form = LoginForm(request.POST or None)
+        categories = Category.objects.all()
+        context = {
+            'form': form,
+            'categories': categories,
+            'cart': self.cart
+        }
+        return render(request, 'login.html', context)
+
+    def post(self, request, *args, **kwargs):
+        form = LoginForm(request.POST or None)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            user = authenticate(username=username, password=password)
+            if user:
+                login(request, user)
+                return HttpResponseRedirect('/')
+        return render(request, 'login.html', {'form': form, 'cart': self.cart})

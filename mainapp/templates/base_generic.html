@@ -56,9 +56,9 @@
           <li class="navbar-item">
             {% if request.user.is_authenticated%}
               <span class="navbar text text-light">Здравствуйте, <span class="badge badge-danger">
-                <a style="text-decoration: none; font-size:14px;color:white;" href="#">{{request.user.username}}</a>
-              </span></span>
-              | <a href="{% url 'logout'%}">Выйти</a>
+                <a style="text-decoration: none; font-size:14px;color:white;" href="{% url 'profile'%}">{{request.user.username}}</a>
+              </span>| <a style="text-decoration: none; color:white;" href="{% url 'logout'%}">Выйти</a></span>
+
             {% endif%}
           </li>
         </ul>
@@ -158,7 +158,6 @@
   <footer class="py-5 bg-dark">
     <div class="container">
       <p class="m-0 text-center text-white">Copyright &copy; Your Website 2020</p>
-      <p>Пробный коммит develop</p>
     </div>
     <!-- /.container -->
   </footer>

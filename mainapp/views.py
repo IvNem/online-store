@@ -2,7 +2,7 @@ from django.contrib.auth import authenticate, login
 from django.shortcuts import render
 from django.views.generic import DetailView, View
 from django.http.response import HttpResponseRedirect
-from mainapp.models import Category, Customer, Cart, CartProduct, Product
+from mainapp.models import Category, Customer, Cart, CartProduct, Product, Order
 from .mixins import CartMixin
 from django.contrib import messages
 from .forms import OrderForm, LoginForm, RegistrationForm
@@ -205,3 +205,12 @@ class RegistrationView(CartMixin, View):
             return HttpResponseRedirect('/')
         context = {'form': form, 'cart': self.cart}
         return render(request, 'registration.html', context)
+
+
+class ProfileView(CartMixin, View):
+    def get(self, request, *args, **kwargs):
+        customer = Customer.objects.get(user=request.user)
+        orders = Order.objects.filter(customer=customer).order_by('-created_at')
+        categories = Category.objects.all()
+        context = {'orders': orders, 'cart': self.cart, 'categories': categories}
+        return render(request, 'profile.html', context)
